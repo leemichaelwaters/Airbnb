@@ -1,0 +1,68 @@
+---
+title: "Airbnb - Data Exploration"
+author: "Lee Waters"
+date: "10/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r load_data}
+listings_2019 <- read.csv('listings_2019.csv', header = T)
+listings_2015 <- read.csv('listings_2015.csv', header = T)
+```
+
+```{r combine_data}
+temp_2015 <- listings_2015 %>% select(ls(listings_2015)) %>% mutate(year = 2015)
+temp_2019 <- listings_2019 %>% select(ls(listings_2019)) %>% mutate(year = 2019)
+listings_master <- rbind(temp_2015, temp_2019)
+rm(temp_2015, temp_2019)
+```
+
+
+```{r descriptive_statistics_2015}
+View(listings_2015)
+dim(listings_2015)
+class(listings_2015)
+str(listings_2015)
+names(listings_2015)
+head(listings_2015)
+summary(listings_2015)
+```
+
+```{r, plots}
+
+
+# Distribution of Prices 2015, 2019
+par(mfrow=c(1,2)) 
+hist(listings_2015$price, xlim = c(0, 4000), breaks = 100, main = 'Airbnb Price', xlab = "Price")
+hist(listings_2019$price, xlim = c(0, 4000), breaks = 100, main = 'Airbnb Price', xlab = "Price")
+
+# Cost 2015, 2019
+listings_master %>% 
+  group_by(year) %>% 
+  summarize(median(price))
+
+par(mfrow=c(1,2)) 
+boxplot(price ~ year, data=listings_master, main="Airbnb Price by Year",
+        xlab="Year", ylab="Price")
+boxplot(price ~ year, data=listings_master, outline = F, main="Airbnb Price by Year",
+        xlab="Year", ylab="Price")
+
+# Cost over time
+ggplot(data = listings_master, mapping = aes(x = as.Date(last_review), y = price)) +
+  geom_point() +
+  geom_smooth(method = lm, color = 'red', linetype = 'dashed') +
+  ggtitle('Price vs. Time') +
+  xlab('Year') +
+  ylab('Price')
+
+# Number of listings 2015, 2019
+ggplot(listings_master) +
+  geom_bar(aes(year))
+
+```
+
